@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eye Tracker · Análisis de posteos</title>
+<script src="https://webgazer.cs.brown.edu/webgazer.js"></script>
+<style>
+  :root{
+    --violet-950:#1a0f2e;
+    --violet-900:#241640;
+    --violet-700:#4a2a7a;
+    --violet-500:#8b5cf6;
+    --violet-300:#c4b5fd;
+    --lavender-100:#f3effc;
+    --ink:#f4f1fb;
+    --muted:#a99bc9;
+    --ok:#7ee0b0;
+    --warn:#f5b869;
+    --font-display:'Georgia', 'Times New Roman', serif;
+    --font-body:-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'SFMono-Regular', Consolas, monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:radial-gradient(ellipse at top, var(--violet-900), var(--violet-950));
+    color:var(--ink);
+    font-family:var(--font-body);
+    min-height:100vh;
+  }
+  header{
+    padding:32px 40px 20px;
+    border-bottom:1px solid rgba(196,181,253,0.15);
+  }
+  .eyebrow{
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--violet-300);
+    margin:0 0 6px;
+  }
+  h1{
+    font-family:var(--font-display);
+    font-weight:400;
+    font-size:32px;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  .sub{color:var(--muted); font-size:14px; margin-top:8px; max-width:560px; line-height:1.5;}
+
+  .layout{
+    display:grid;
+    grid-template-columns:280px 1fr;
+    gap:0;
+    min-height:calc(100vh - 130px);
+  }
+  aside{
+    padding:28px 24px;
+    border-right:1px solid rgba(196,181,253,0.15);
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+  }
+  .step{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    padding:14px;
+    border-radius:10px;
+    border:1px solid rgba(196,181,253,0.12);
+    background:rgba(139,92,246,0.05);
+  }
+  .step.active{
+    border-color:var(--violet-500);
+    background:rgba(139,92,246,0.14);
+  }
+  .step.done{ opacity:0.55; }
+  .step-num{
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--violet-300);
+    width:20px;
+    padding-top:2px;
+  }
+  .step-body h3{ margin:0 0 4px; font-size:14px; font-weight:600;}
+  .step-body p{ margin:0; font-size:12.5px; color:var(--muted); line-height:1.4;}
+
+  main{
+    padding:32px 40px;
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+  }
+
+  .panel{
+    background:rgba(255,255,255,0.03);
+    border:1px solid rgba(196,181,253,0.14);
+    border-radius:14px;
+    padding:20px;
+  }
+
+  button{
+    font-family:var(--font-body);
+    font-size:13.5px;
+    font-weight:600;
+    border:none;
+    border-radius:8px;
+    padding:11px 18px;
+    cursor:pointer;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  button.primary{ background:var(--violet-500); color:#fff; }
+  button.primary:hover{ transform:translateY(-1px); box-shadow:0 6px 18px rgba(139,92,246,0.35);}
+  button.ghost{ background:transparent; color:var(--violet-300); border:1px solid var(--violet-700);}
+  button.ghost:hover{ background:rgba(139,92,246,0.1); }
+  button:disabled{ opacity:0.35; cursor:not-allowed; transform:none; box-shadow:none;}
+  button.small{ padding:7px 12px; font-size:12px;}
+
+  input[type=file]{ display:none; }
+  .upload-zone{
+    border:1.5px dashed var(--violet-700);
+    border-radius:12px;
+    padding:36px 20px;
+    text-align:center;
+    cursor:pointer;
+    color:var(--muted);
+    font-size:13px;
+  }
+  .upload-zone:hover{ border-color:var(--violet-500); color:var(--violet-300); }
+
+  .stage{
+    position:relative;
+    background:#0d0716;
+    border-radius:12px;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:420px;
+  }
+  .stage img{ max-width:100%; display:block; }
+  .stage canvas.heat-overlay{
+    position:absolute;
+    top:0; left:0;
+    pointer-events:none;
+  }
+
+  .cal-dot{
+    position:fixed;
+    width:22px; height:22px;
+    border-radius:50%;
+    background:var(--violet-500);
+    border:3px solid var(--lavender-100);
+    box-shadow:0 0 0 6px rgba(139,92,246,0.2);
+    cursor:pointer;
+    z-index:999;
+    transform:translate(-50%,-50%);
+  }
+  .cal-dot.clicked{ background:var(--ok); }
+
+  .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .badge{
+    font-family:var(--font-mono);
+    font-size:11px;
+    padding:4px 10px;
+    border-radius:999px;
+    background:rgba(139,92,246,0.15);
+    color:var(--violet-300);
+  }
+  .badge.ok{ background:rgba(126,224,176,0.15); color:var(--ok); }
+  .badge.warn{ background:rgba(245,184,105,0.15); color:var(--warn); }
+
+  .stat{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .stat .n{ font-family:var(--font-display); font-size:26px; }
+  .stat .l{ font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; }
+
+  video#webgazerVideoFeed, canvas#webgazerFaceOverlay, canvas#webgazerFaceFeedbackBox{
+    position:fixed !important;
+    bottom:16px !important;
+    right:16px !important;
+    top:auto !important;
+    left:auto !important;
+    width:160px !important;
+    height:120px !important;
+    border-radius:10px;
+    border:1px solid var(--violet-700);
+    z-index:50;
+  }
+  #webgazerGazeDot{ z-index:1000; }
+
+  .instructions{ font-size:12.5px; color:var(--muted); line-height:1.6; }
+  .hidden{ display:none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">Attention · Eye tracking</p>
+  <h1>Qué mira la gente en tus posteos</h1>
+  <p class="sub">Tracking de mirada con webcam en el navegador (WebGazer.js). Calibrá una vez, subí un posteo, y mirá dónde se detienen los ojos.</p>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="step active" id="step1">
+      <div class="step-num">01</div>
+      <div class="step-body">
+        <h3>Activar cámara</h3>
+        <p>Necesita permiso de webcam. Tu cara nunca sale del navegador.</p>
+      </div>
+    </div>
+    <div class="step" id="step2">
+      <div class="step-num">02</div>
+      <div class="step-body">
+        <h3>Calibrar</h3>
+        <p>Click en 9 puntos mirándolos fijo. Mejora mucho la precisión.</p>
+      </div>
+    </div>
+    <div class="step" id="step3">
+      <div class="step-num">03</div>
+      <div class="step-body">
+        <h3>Subir posteo</h3>
+        <p>Imagen del post que querés analizar.</p>
+      </div>
+    </div>
+    <div class="step" id="step4">
+      <div class="step-num">04</div>
+      <div class="step-body">
+        <h3>Grabar mirada</h3>
+        <p>Mirá el posteo con naturalidad. Parás cuando quieras.</p>
+      </div>
+    </div>
+    <div class="step" id="step5">
+      <div class="step-num">05</div>
+      <div class="step-body">
+        <h3>Heatmap + datos</h3>
+        <p>Exportá el mapa de calor (PNG) y los puntos crudos (CSV).</p>
+      </div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="panel row" style="justify-content:space-between;">
+      <div class="row">
+        <button class="primary" id="btnStart">Activar cámara</button>
+        <button class="ghost" id="btnCalibrate" disabled>Calibrar (9 puntos)</button>
+        <span class="badge" id="camBadge">cámara: apagada</span>
+        <span class="badge" id="calBadge">calibración: pendiente</span>
+      </div>
+      <div class="row">
+        <span class="badge" id="pointsBadge">0 puntos capturados</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="upload-zone" id="uploadZone">
+        📷 Click para subir la imagen del posteo (o arrastrala acá)
+      </div>
+      <input type="file" id="fileInput" accept="image/*">
+    </div>
+
+    <div class="panel hidden" id="stagePanel">
+      <div class="row" style="margin-bottom:14px; justify-content:space-between;">
+        <div class="row">
+          <button class="primary" id="btnRecord">▶ Empezar a grabar mirada</button>
+          <button class="ghost" id="btnStop" disabled>■ Parar</button>
+          <button class="ghost small" id="btnReset">Reiniciar puntos</button>
+        </div>
+        <div class="row" id="statsRow" style="display:none;">
+          <div class="stat"><span class="n" id="statPoints">0</span><span class="l">puntos</span></div>
+          <div class="stat"><span class="n" id="statTime">0s</span><span class="l">duración</span></div>
+        </div>
+      </div>
+      <div class="stage" id="stage">
+        <img id="postImg" alt="posteo">
+        <canvas class="heat-overlay" id="heatCanvas"></canvas>
+      </div>
+      <div class="row" style="margin-top:14px;">
+        <button class="ghost small" id="btnHeatmap">Generar heatmap</button>
+        <button class="ghost small" id="btnExportPNG">Exportar heatmap PNG</button>
+        <button class="ghost small" id="btnExportCSV">Exportar datos CSV (x,y,t)</button>
+      </div>
+    </div>
+
+    <div class="panel instructions">
+      <strong style="color:var(--violet-300);">Notas de precisión:</strong> WebGazer no es un eye-tracker de laboratorio — usa tu webcam normal y machine learning en el navegador para estimar la mirada. Para mejores resultados: buena luz frontal, cabeza relativamente quieta, calibrá de nuevo si te movés mucho, y usá pantalla completa del navegador durante el análisis.
+    </div>
+  </main>
+</div>
+
+<script>
+let gazeData = [];
+let recording = false;
+let recordStart = null;
+let calibClicks = {};
+const calibPoints = [
+  [10,10],[50,10],[90,10],
+  [10,50],[50,50],[90,50],
+  [10,90],[50,90],[90,90]
+];
+
+const btnStart = document.getElementById('btnStart');
+const btnCalibrate = document.getElementById('btnCalibrate');
+const camBadge = document.getElementById('camBadge');
+const calBadge = document.getElementById('calBadge');
+const pointsBadge = document.getElementById('pointsBadge');
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+const stagePanel = document.getElementById('stagePanel');
+const postImg = document.getElementById('postImg');
+const heatCanvas = document.getElementById('heatCanvas');
+const btnRecord = document.getElementById('btnRecord');
+const btnStop = document.getElementById('btnStop');
+const btnReset = document.getElementById('btnReset');
+const btnHeatmap = document.getElementById('btnHeatmap');
+const btnExportPNG = document.getElementById('btnExportPNG');
+const btnExportCSV = document.getElementById('btnExportCSV');
+const statsRow = document.getElementById('statsRow');
+const statPoints = document.getElementById('statPoints');
+const statTime = document.getElementById('statTime');
+
+function setStep(n){
+  for(let i=1;i<=5;i++){
+    const el = document.getElementById('step'+i);
+    el.classList.remove('active','done');
+    if(i<n) el.classList.add('done');
+    if(i===n) el.classList.add('active');
+  }
+}
+
+btnStart.addEventListener('click', async () => {
+  btnStart.disabled = true;
+  btnStart.textContent = 'Iniciando...';
+  try{
+    await webgazer.setRegression('ridge')
+      .setGazeListener((data, ts) => {
+        if(data == null || !recording) return;
+        const stageRect = document.getElementById('stage').getBoundingClientRect();
+        const x = data.x - stageRect.left;
+        const y = data.y - stageRect.top;
+        if(x < 0 || y < 0 || x > stageRect.width || y > stageRect.height) return;
+        gazeData.push({x, y, t: Date.now() - recordStart});
+        statPoints.textContent = gazeData.length;
+        pointsBadge.textContent = gazeData.length + ' puntos capturados';
+      })
+      .begin();
+    webgazer.showVideoPreview(true).showPredictionPoints(true).showFaceOverlay(false).showFaceFeedbackBox(false);
+    camBadge.textContent = 'cámara: activa';
+    camBadge.classList.add('ok');
+    btnStart.textContent = 'Cámara activa';
+    btnCalibrate.disabled = false;
+    setStep(2);
+  }catch(e){
+    camBadge.textContent = 'cámara: error de permisos';
+    camBadge.classList.add('warn');
+    btnStart.disabled = false;
+    btnStart.textContent = 'Reintentar';
+    alert('No se pudo acceder a la cámara. Revisá los permisos del navegador para este sitio.');
+  }
+});
+
+btnCalibrate.addEventListener('click', () => {
+  calibClicks = {};
+  document.querySelectorAll('.cal-dot').forEach(d => d.remove());
+  calibPoints.forEach((p, idx) => {
+    const dot = document.createElement('div');
+    dot.className = 'cal-dot';
+    dot.style.left = p[0] + 'vw';
+    dot.style.top = p[1] + 'vh';
+    dot.dataset.idx = idx;
+    dot.addEventListener('click', () => {
+      dot.classList.add('clicked');
+      calibClicks[idx] = (calibClicks[idx] || 0) + 1;
+      if(calibClicks[idx] >= 5){
+        dot.style.pointerEvents = 'none';
+      }
+      const totalDone = Object.values(calibClicks).filter(c => c >= 5).length;
+      calBadge.textContent = 'calibración: ' + totalDone + '/9 puntos';
+      if(totalDone >= 9){
+        calBadge.textContent = 'calibración: completa';
+        calBadge.classList.add('ok');
+        setTimeout(() => {
+          document.querySelectorAll('.cal-dot').forEach(d => d.remove());
+          setStep(3);
+        }, 400);
+      }
+    });
+    document.body.appendChild(dot);
+  });
+});
+
+uploadZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    postImg.src = ev.target.result;
+    postImg.onload = () => {
+      stagePanel.classList.remove('hidden');
+      heatCanvas.width = postImg.clientWidth;
+      heatCanvas.height = postImg.clientHeight;
+      setStep(4);
+    };
+  };
+  reader.readAsDataURL(file);
+});
+
+btnRecord.addEventListener('click', () => {
+  gazeData = [];
+  recording = true;
+  recordStart = Date.now();
+  statsRow.style.display = 'flex';
+  btnRecord.disabled = true;
+  btnStop.disabled = false;
+  tickTimer();
+});
+
+function tickTimer(){
+  if(!recording) return;
+  statTime.textContent = Math.round((Date.now()-recordStart)/1000) + 's';
+  requestAnimationFrame(tickTimer);
+}
+
+btnStop.addEventListener('click', () => {
+  recording = false;
+  btnRecord.disabled = false;
+  btnStop.disabled = true;
+  setStep(5);
+});
+
+btnReset.addEventListener('click', () => {
+  gazeData = [];
+  statPoints.textContent = '0';
+  pointsBadge.textContent = '0 puntos capturados';
+  const ctx = heatCanvas.getContext('2d');
+  ctx.clearRect(0,0,heatCanvas.width, heatCanvas.height);
+});
+
+btnHeatmap.addEventListener('click', () => drawHeatmap());
+
+function drawHeatmap(){
+  heatCanvas.width = postImg.clientWidth;
+  heatCanvas.height = postImg.clientHeight;
+  const ctx = heatCanvas.getContext('2d');
+  ctx.clearRect(0,0,heatCanvas.width, heatCanvas.height);
+  if(gazeData.length === 0){ alert('Todavía no hay datos de mirada grabados.'); return; }
+
+  const radius = 46;
+  gazeData.forEach(p => {
+    const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, radius);
+    grad.addColorStop(0, 'rgba(139,92,246,0.35)');
+    grad.addColorStop(1, 'rgba(139,92,246,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, radius, 0, Math.PI*2);
+    ctx.fill();
+  });
+
+  // recolor via lookup for a warmer high-density look
+  const img = ctx.getImageData(0,0,heatCanvas.width, heatCanvas.height);
+  for(let i=0;i<img.data.length;i+=4){
+    const a = img.data[i+3];
+    if(a === 0) continue;
+    const t = Math.min(a/255, 1);
+    // violet -> pink -> amber ramp based on density
+    const r = Math.round(139 + t*(245-139));
+    const g = Math.round(92 + t*(184-92));
+    const b = Math.round(246 + t*(105-246));
+    img.data[i] = r; img.data[i+1] = g; img.data[i+2] = b;
+    img.data[i+3] = Math.min(255, a*1.8);
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
+btnExportPNG.addEventListener('click', () => {
+  if(heatCanvas.width === 0){ alert('Generá el heatmap primero.'); return; }
+  const link = document.createElement('a');
+  link.download = 'heatmap-posteo.png';
+  link.href = heatCanvas.toDataURL('image/png');
+  link.click();
+});
+
+btnExportCSV.addEventListener('click', () => {
+  if(gazeData.length === 0){ alert('Todavía no hay datos grabados.'); return; }
+  let csv = 'x_px,y_px,t_ms\n';
+  gazeData.forEach(p => { csv += `${p.x.toFixed(1)},${p.y.toFixed(1)},${p.t}\n`; });
+  const blob = new Blob([csv], {type:'text/csv'});
+  const link = document.createElement('a');
+  link.download = 'gaze-data.csv';
+  link.href = URL.createObjectURL(blob);
+  link.click();
+});
+
+window.addEventListener('beforeunload', () => {
+  if(window.webgazer) webgazer.end();
+});
+</script>
+
+</body>
+</html>
