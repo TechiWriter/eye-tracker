@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Eye Tracker · Análisis de posteos</title>
-<script src="https://webgazer.cs.brown.edu/webgazer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/webgazer@3/dist/webgazer.min.js"></script>
 <style>
   :root{
     --violet-950:#1a0f2e;
@@ -336,7 +336,30 @@ function setStep(n){
 btnStart.addEventListener('click', async () => {
   btnStart.disabled = true;
   btnStart.textContent = 'Iniciando...';
+
+  if(typeof webgazer === 'undefined'){
+    camBadge.textContent = 'cámara: no cargó la librería (CDN bloqueado)';
+    camBadge.classList.add('warn');
+    btnStart.disabled = false;
+    btnStart.textContent = 'Reintentar';
+    alert('La librería WebGazer no llegó a cargar desde el CDN. Puede ser un bloqueador de anuncios/rastreadores, una extensión, o tu red bloqueando cdn.jsdelivr.net. Probá desactivar extensiones o en una ventana de incógnito.');
+    return;
+  }
+
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    camBadge.textContent = 'cámara: navegador sin soporte getUserMedia';
+    camBadge.classList.add('warn');
+    btnStart.disabled = false;
+    btnStart.textContent = 'Reintentar';
+    alert('Este navegador/contexto no soporta acceso a cámara (getUserMedia). Confirmá que la URL empiece con https:// o http://localhost.');
+    return;
+  }
+
   try{
+    // Pedimos el permiso de cámara nosotros mismos primero, así el error es específico
+    const testStream = await navigator.mediaDevices.getUserMedia({ video: true });
+    testStream.getTracks().forEach(t => t.stop());
+
     await webgazer.setRegression('ridge')
       .setGazeListener((data, ts) => {
         if(data == null || !recording) return;
@@ -356,11 +379,18 @@ btnStart.addEventListener('click', async () => {
     btnCalibrate.disabled = false;
     setStep(2);
   }catch(e){
-    camBadge.textContent = 'cámara: error de permisos';
+    console.error('Eye tracker camera error:', e);
+    let msg = 'No se pudo acceder a la cámara: ' + (e.name || 'error desconocido') + '.';
+    if(e.name === 'NotAllowedError') msg += ' El sitio no tiene permiso — revisá el ícono de cámara junto a la URL y ponelo en Permitir.';
+    else if(e.name === 'NotFoundError' || e.name === 'DevicesNotFoundError') msg += ' No se detectó ninguna cámara conectada.';
+    else if(e.name === 'NotReadableError' || e.name === 'TrackStartError') msg += ' La cámara está siendo usada por otra app (Zoom, Meet, OBS, otra pestaña, etc). Cerrala e intentá de nuevo.';
+    else if(e.name === 'OverconstrainedError') msg += ' La cámara no soporta la configuración pedida.';
+    else msg += ' Revisá la consola (F12) para más detalle.';
+    camBadge.textContent = 'cámara: ' + (e.name || 'error');
     camBadge.classList.add('warn');
     btnStart.disabled = false;
     btnStart.textContent = 'Reintentar';
-    alert('No se pudo acceder a la cámara. Revisá los permisos del navegador para este sitio.');
+    alert(msg);
   }
 });
 
