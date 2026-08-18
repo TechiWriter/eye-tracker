@@ -7,16 +7,16 @@
 <script src="https://cdn.jsdelivr.net/gh/jspsych/jspsych@jspsych@7.0.0/examples/js/webgazer/webgazer.js"></script>
 <style>
   :root{
-    --violet-950:#1a0f2e;
-    --violet-900:#241640;
-    --violet-700:#4a2a7a;
-    --violet-500:#8b5cf6;
-    --violet-300:#c4b5fd;
-    --lavender-100:#f3effc;
-    --ink:#f4f1fb;
-    --muted:#a99bc9;
-    --ok:#7ee0b0;
-    --warn:#f5b869;
+    --gray-950:#141414;
+    --gray-900:#1c1c1c;
+    --gray-700:#3a3a3a;
+    --gray-500:#8a8a8a;
+    --gray-300:#c9c9c9;
+    --gray-100:#f2f2f0;
+    --ink:#ececec;
+    --muted:#9a9a9a;
+    --ok:#8fb89a;
+    --warn:#c9a06a;
     --font-display:'Georgia', 'Times New Roman', serif;
     --font-body:-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-mono: 'SFMono-Regular', Consolas, monospace;
@@ -24,115 +24,121 @@
   *{box-sizing:border-box;}
   body{
     margin:0;
-    background:radial-gradient(ellipse at top, var(--violet-900), var(--violet-950));
+    background:var(--gray-950);
     color:var(--ink);
     font-family:var(--font-body);
     min-height:100vh;
   }
   header{
-    padding:32px 40px 20px;
-    border-bottom:1px solid rgba(196,181,253,0.15);
+    padding:24px 40px 16px;
+    border-bottom:1px solid rgba(255,255,255,0.08);
   }
   .eyebrow{
-    font-size:12px;
+    font-size:11px;
     letter-spacing:0.14em;
     text-transform:uppercase;
-    color:var(--violet-300);
+    color:var(--gray-500);
     margin:0 0 6px;
   }
   h1{
     font-family:var(--font-display);
     font-weight:400;
-    font-size:32px;
+    font-size:26px;
     margin:0;
     letter-spacing:-0.01em;
+    color:var(--gray-100);
   }
-  .sub{color:var(--muted); font-size:14px; margin-top:8px; max-width:560px; line-height:1.5;}
+  .sub{color:var(--muted); font-size:13px; margin-top:6px; max-width:560px; line-height:1.5;}
 
-  .layout{
-    display:grid;
-    grid-template-columns:280px 1fr;
-    gap:0;
-    min-height:calc(100vh - 130px);
-  }
-  aside{
-    padding:28px 24px;
-    border-right:1px solid rgba(196,181,253,0.15);
+  /* Path horizontal de pasos, sin bloques laterales que distraigan la mirada */
+  .steps-path{
     display:flex;
-    flex-direction:column;
-    gap:20px;
+    align-items:center;
+    padding:14px 40px;
+    border-bottom:1px solid rgba(255,255,255,0.06);
+    background:var(--gray-900);
+    gap:0;
+    overflow-x:auto;
   }
   .step{
     display:flex;
-    gap:12px;
-    align-items:flex-start;
-    padding:14px;
-    border-radius:10px;
-    border:1px solid rgba(196,181,253,0.12);
-    background:rgba(139,92,246,0.05);
+    align-items:center;
+    gap:8px;
+    color:var(--gray-500);
+    white-space:nowrap;
+    padding:4px 0;
   }
-  .step.active{
-    border-color:var(--violet-500);
-    background:rgba(139,92,246,0.14);
-  }
-  .step.done{ opacity:0.55; }
   .step-num{
     font-family:var(--font-mono);
-    font-size:11px;
-    color:var(--violet-300);
-    width:20px;
-    padding-top:2px;
+    font-size:10.5px;
+    width:18px; height:18px;
+    border-radius:50%;
+    border:1px solid var(--gray-700);
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
   }
-  .step-body h3{ margin:0 0 4px; font-size:14px; font-weight:600;}
-  .step-body p{ margin:0; font-size:12.5px; color:var(--muted); line-height:1.4;}
+  .step-label{ font-size:12.5px; }
+  .step.active{ color:var(--gray-100); }
+  .step.active .step-num{ border-color:var(--gray-100); background:var(--gray-100); color:var(--gray-950); }
+  .step.done{ color:var(--gray-500); }
+  .step.done .step-num{ border-color:var(--gray-500); }
+  .step-connector{
+    width:28px; height:1px;
+    background:var(--gray-700);
+    margin:0 10px;
+    flex-shrink:0;
+  }
 
   main{
-    padding:32px 40px;
+    padding:24px 40px 40px;
     display:flex;
     flex-direction:column;
-    gap:18px;
+    gap:16px;
+    max-width:920px;
+    margin:0 auto;
   }
 
   .panel{
-    background:rgba(255,255,255,0.03);
-    border:1px solid rgba(196,181,253,0.14);
-    border-radius:14px;
-    padding:20px;
+    background:var(--gray-900);
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:10px;
+    padding:18px;
   }
 
   button{
     font-family:var(--font-body);
-    font-size:13.5px;
+    font-size:13px;
     font-weight:600;
     border:none;
-    border-radius:8px;
-    padding:11px 18px;
+    border-radius:6px;
+    padding:10px 16px;
     cursor:pointer;
-    transition:transform .12s ease, box-shadow .12s ease;
+    transition:opacity .12s ease;
   }
-  button.primary{ background:var(--violet-500); color:#fff; }
-  button.primary:hover{ transform:translateY(-1px); box-shadow:0 6px 18px rgba(139,92,246,0.35);}
-  button.ghost{ background:transparent; color:var(--violet-300); border:1px solid var(--violet-700);}
-  button.ghost:hover{ background:rgba(139,92,246,0.1); }
-  button:disabled{ opacity:0.35; cursor:not-allowed; transform:none; box-shadow:none;}
+  button.primary{ background:var(--gray-100); color:var(--gray-950); }
+  button.primary:hover{ opacity:0.85; }
+  button.ghost{ background:transparent; color:var(--gray-300); border:1px solid var(--gray-700);}
+  button.ghost:hover{ border-color:var(--gray-500); }
+  button:disabled{ opacity:0.3; cursor:not-allowed; }
   button.small{ padding:7px 12px; font-size:12px;}
 
   input[type=file]{ display:none; }
   .upload-zone{
-    border:1.5px dashed var(--violet-700);
-    border-radius:12px;
-    padding:36px 20px;
+    border:1.5px dashed var(--gray-700);
+    border-radius:10px;
+    padding:32px 20px;
     text-align:center;
     cursor:pointer;
     color:var(--muted);
     font-size:13px;
   }
-  .upload-zone:hover{ border-color:var(--violet-500); color:var(--violet-300); }
+  .upload-zone:hover{ border-color:var(--gray-500); color:var(--gray-300); }
 
+  /* Escenario neutro y sin bordes marcados: minimiza estímulos periféricos que sesguen la mirada */
   .stage{
     position:relative;
-    background:#0d0716;
-    border-radius:12px;
+    background:#2a2a2a;
+    border-radius:8px;
     overflow:hidden;
     display:flex;
     align-items:center;
@@ -148,11 +154,11 @@
 
   .cal-dot{
     position:fixed;
-    width:22px; height:22px;
+    width:20px; height:20px;
     border-radius:50%;
-    background:var(--violet-500);
-    border:3px solid var(--lavender-100);
-    box-shadow:0 0 0 6px rgba(139,92,246,0.2);
+    background:var(--gray-100);
+    border:3px solid var(--gray-950);
+    box-shadow:0 0 0 5px rgba(255,255,255,0.12);
     cursor:pointer;
     z-index:999;
     transform:translate(-50%,-50%);
@@ -165,18 +171,18 @@
     font-size:11px;
     padding:4px 10px;
     border-radius:999px;
-    background:rgba(139,92,246,0.15);
-    color:var(--violet-300);
+    background:rgba(255,255,255,0.06);
+    color:var(--gray-300);
   }
-  .badge.ok{ background:rgba(126,224,176,0.15); color:var(--ok); }
-  .badge.warn{ background:rgba(245,184,105,0.15); color:var(--warn); }
+  .badge.ok{ background:rgba(143,184,154,0.15); color:var(--ok); }
+  .badge.warn{ background:rgba(201,160,106,0.15); color:var(--warn); }
 
   .stat{
     display:flex;
     flex-direction:column;
     gap:2px;
   }
-  .stat .n{ font-family:var(--font-display); font-size:26px; }
+  .stat .n{ font-family:var(--font-display); font-size:24px; color:var(--gray-100); }
   .stat .l{ font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; }
 
   video#webgazerVideoFeed, canvas#webgazerFaceOverlay, canvas#webgazerFaceFeedbackBox{
@@ -185,11 +191,12 @@
     right:16px !important;
     top:auto !important;
     left:auto !important;
-    width:160px !important;
-    height:120px !important;
-    border-radius:10px;
-    border:1px solid var(--violet-700);
+    width:150px !important;
+    height:112px !important;
+    border-radius:8px;
+    border:1px solid var(--gray-700);
     z-index:50;
+    filter:grayscale(1) contrast(0.9);
   }
   #webgazerGazeDot{ z-index:1000; }
 
@@ -205,44 +212,17 @@
   <p class="sub">Tracking de mirada con webcam en el navegador (WebGazer.js). Calibrá una vez, subí un posteo, y mirá dónde se detienen los ojos.</p>
 </header>
 
-<div class="layout">
-  <aside>
-    <div class="step active" id="step1">
-      <div class="step-num">01</div>
-      <div class="step-body">
-        <h3>Activar cámara</h3>
-        <p>Necesita permiso de webcam. Tu cara nunca sale del navegador.</p>
-      </div>
-    </div>
-    <div class="step" id="step2">
-      <div class="step-num">02</div>
-      <div class="step-body">
-        <h3>Calibrar</h3>
-        <p>Click en 9 puntos mirándolos fijo. Mejora mucho la precisión.</p>
-      </div>
-    </div>
-    <div class="step" id="step3">
-      <div class="step-num">03</div>
-      <div class="step-body">
-        <h3>Subir posteo</h3>
-        <p>Imagen del post que querés analizar.</p>
-      </div>
-    </div>
-    <div class="step" id="step4">
-      <div class="step-num">04</div>
-      <div class="step-body">
-        <h3>Grabar mirada</h3>
-        <p>Mirá el posteo con naturalidad. Parás cuando quieras.</p>
-      </div>
-    </div>
-    <div class="step" id="step5">
-      <div class="step-num">05</div>
-      <div class="step-body">
-        <h3>Heatmap + datos</h3>
-        <p>Exportá el mapa de calor (PNG) y los puntos crudos (CSV).</p>
-      </div>
-    </div>
-  </aside>
+<nav class="steps-path">
+  <div class="step active" id="step1"><span class="step-num">1</span><span class="step-label">Activar cámara</span></div>
+  <div class="step-connector"></div>
+  <div class="step" id="step2"><span class="step-num">2</span><span class="step-label">Calibrar</span></div>
+  <div class="step-connector"></div>
+  <div class="step" id="step3"><span class="step-num">3</span><span class="step-label">Subir posteo</span></div>
+  <div class="step-connector"></div>
+  <div class="step" id="step4"><span class="step-num">4</span><span class="step-label">Grabar mirada</span></div>
+  <div class="step-connector"></div>
+  <div class="step" id="step5"><span class="step-num">5</span><span class="step-label">Heatmap + datos</span></div>
+</nav>
 
   <main>
     <div class="panel row" style="justify-content:space-between;">
@@ -282,22 +262,23 @@
       </div>
       <div class="row" style="margin-top:14px;">
         <button class="ghost small" id="btnHeatmap">Generar heatmap</button>
-        <button class="ghost small" id="btnExportPNG">Exportar heatmap PNG</button>
+        <button class="ghost small" id="btnExportPNG">Exportar heatmap solo (PNG)</button>
+        <button class="ghost small" id="btnExportComposite">Exportar heatmap + posteo (PNG)</button>
         <button class="ghost small" id="btnExportCSV">Exportar datos CSV (x,y,t)</button>
       </div>
     </div>
 
     <div class="panel instructions">
-      <strong style="color:var(--violet-300);">Notas de precisión:</strong> WebGazer no es un eye-tracker de laboratorio — usa tu webcam normal y machine learning en el navegador para estimar la mirada. Para mejores resultados: buena luz frontal, cabeza relativamente quieta, calibrá de nuevo si te movés mucho, y usá pantalla completa del navegador durante el análisis.
+      <strong style="color:var(--gray-300);">Notas de precisión:</strong> WebGazer no es un eye-tracker de laboratorio — usa tu webcam normal y machine learning en el navegador para estimar la mirada. Para mejores resultados: buena luz frontal, cabeza relativamente quieta, calibrá de nuevo si te movés mucho, y usá pantalla completa del navegador durante el análisis.
     </div>
   </main>
-</div>
 
 <script>
 let gazeData = [];
 let recording = false;
 let recordStart = null;
 let calibClicks = {};
+const CLICKS_PER_POINT = 9;
 const calibPoints = [
   [10,10],[50,10],[90,10],
   [10,50],[50,50],[90,50],
@@ -319,6 +300,7 @@ const btnStop = document.getElementById('btnStop');
 const btnReset = document.getElementById('btnReset');
 const btnHeatmap = document.getElementById('btnHeatmap');
 const btnExportPNG = document.getElementById('btnExportPNG');
+const btnExportComposite = document.getElementById('btnExportComposite');
 const btnExportCSV = document.getElementById('btnExportCSV');
 const statsRow = document.getElementById('statsRow');
 const statPoints = document.getElementById('statPoints');
@@ -331,6 +313,26 @@ function setStep(n){
     if(i<n) el.classList.add('done');
     if(i===n) el.classList.add('active');
   }
+}
+
+// Suavizado extra por promedio móvil sobre las últimas muestras, además del filtro Kalman de WebGazer
+const smoothBuffer = [];
+const SMOOTH_WINDOW = 4;
+
+function mainGazeListener(data, ts){
+  if(data == null || !recording) return;
+  smoothBuffer.push(data);
+  if(smoothBuffer.length > SMOOTH_WINDOW) smoothBuffer.shift();
+  const avgX = smoothBuffer.reduce((s,d)=>s+d.x,0) / smoothBuffer.length;
+  const avgY = smoothBuffer.reduce((s,d)=>s+d.y,0) / smoothBuffer.length;
+
+  const stageRect = document.getElementById('stage').getBoundingClientRect();
+  const x = avgX - stageRect.left;
+  const y = avgY - stageRect.top;
+  if(x < 0 || y < 0 || x > stageRect.width || y > stageRect.height) return;
+  gazeData.push({x, y, t: Date.now() - recordStart});
+  statPoints.textContent = gazeData.length;
+  pointsBadge.textContent = gazeData.length + ' puntos capturados';
 }
 
 btnStart.addEventListener('click', async () => {
@@ -361,17 +363,9 @@ btnStart.addEventListener('click', async () => {
     testStream.getTracks().forEach(t => t.stop());
 
     await webgazer.setRegression('ridge')
-      .setGazeListener((data, ts) => {
-        if(data == null || !recording) return;
-        const stageRect = document.getElementById('stage').getBoundingClientRect();
-        const x = data.x - stageRect.left;
-        const y = data.y - stageRect.top;
-        if(x < 0 || y < 0 || x > stageRect.width || y > stageRect.height) return;
-        gazeData.push({x, y, t: Date.now() - recordStart});
-        statPoints.textContent = gazeData.length;
-        pointsBadge.textContent = gazeData.length + ' puntos capturados';
-      })
+      .setGazeListener(mainGazeListener)
       .begin();
+    webgazer.applyKalmanFilter(true);
     webgazer.showVideoPreview(true).showPredictionPoints(true).showFaceOverlay(false).showFaceFeedbackBox(false);
     camBadge.textContent = 'cámara: activa';
     camBadge.classList.add('ok');
@@ -394,7 +388,10 @@ btnStart.addEventListener('click', async () => {
   }
 });
 
-btnCalibrate.addEventListener('click', () => {
+btnCalibrate.addEventListener('click', () => runCalibration());
+
+function runCalibration(){
+  calBadge.classList.remove('ok','warn');
   calibClicks = {};
   document.querySelectorAll('.cal-dot').forEach(d => d.remove());
   calibPoints.forEach((p, idx) => {
@@ -406,23 +403,94 @@ btnCalibrate.addEventListener('click', () => {
     dot.addEventListener('click', () => {
       dot.classList.add('clicked');
       calibClicks[idx] = (calibClicks[idx] || 0) + 1;
-      if(calibClicks[idx] >= 5){
+      if(calibClicks[idx] >= CLICKS_PER_POINT){
         dot.style.pointerEvents = 'none';
       }
-      const totalDone = Object.values(calibClicks).filter(c => c >= 5).length;
-      calBadge.textContent = 'calibración: ' + totalDone + '/9 puntos';
+      const totalDone = Object.values(calibClicks).filter(c => c >= CLICKS_PER_POINT).length;
+      calBadge.textContent = 'calibración: ' + totalDone + '/9 puntos (' + CLICKS_PER_POINT + ' clicks c/u)';
       if(totalDone >= 9){
-        calBadge.textContent = 'calibración: completa';
-        calBadge.classList.add('ok');
         setTimeout(() => {
           document.querySelectorAll('.cal-dot').forEach(d => d.remove());
-          setStep(3);
+          runValidation();
         }, 400);
       }
     });
     document.body.appendChild(dot);
   });
-});
+}
+
+// Puntos distintos a los de calibración, para chequear precisión real sin hacer trampa
+const validationPoints = [[25,25],[75,25],[50,50],[25,75],[75,75]];
+
+function runValidation(){
+  calBadge.textContent = 'validando precisión...';
+  let vIdx = 0;
+  const errors = [];
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:998;background:rgba(20,20,20,0.4);';
+  document.body.appendChild(overlay);
+
+  function nextPoint(){
+    if(vIdx >= validationPoints.length){
+      overlay.remove();
+      finishValidation(errors);
+      return;
+    }
+    const p = validationPoints[vIdx];
+    const dot = document.createElement('div');
+    dot.className = 'cal-dot';
+    dot.style.left = p[0] + 'vw';
+    dot.style.top = p[1] + 'vh';
+    dot.style.background = 'var(--gray-300)';
+    dot.style.pointerEvents = 'none';
+    document.body.appendChild(dot);
+    const targetX = (p[0]/100) * window.innerWidth;
+    const targetY = (p[1]/100) * window.innerHeight;
+
+    const samples = [];
+    const collectFrom = Date.now() + 500; // ignora los primeros 500ms mientras el usuario fija la mirada
+    webgazer.setGazeListener((data) => {
+      if(data == null || Date.now() < collectFrom) return;
+      samples.push(data);
+    });
+
+    setTimeout(() => {
+      if(samples.length){
+        const avgX = samples.reduce((s,d)=>s+d.x,0)/samples.length;
+        const avgY = samples.reduce((s,d)=>s+d.y,0)/samples.length;
+        const dist = Math.hypot(avgX-targetX, avgY-targetY);
+        errors.push(dist);
+      }
+      webgazer.setGazeListener(mainGazeListener);
+      dot.remove();
+      vIdx++;
+      nextPoint();
+    }, 1400);
+  }
+  nextPoint();
+}
+
+function finishValidation(errors){
+  btnCalibrate.textContent = 'Recalibrar (9 puntos)';
+  const diag = Math.hypot(window.innerWidth, window.innerHeight);
+  const avgErrorPx = errors.length ? errors.reduce((a,b)=>a+b,0)/errors.length : diag;
+  const errorPct = avgErrorPx / diag * 100;
+  const score = Math.max(0, Math.round(100 - errorPct*2.2));
+
+  if(score >= 60){
+    calBadge.textContent = 'calibración: buena (precisión ' + score + '%)';
+    calBadge.classList.add('ok');
+    setStep(3);
+  } else {
+    calBadge.textContent = 'calibración: floja (precisión ' + score + '%)';
+    calBadge.classList.add('warn');
+    const retry = confirm(
+      'La precisión salió baja (' + score + '%). Esto suele pasar por poca luz, mucho movimiento de cabeza, o quedar muy lejos/cerca de la cámara.\n\n' +
+      '¿Querés recalibrar ahora? (Aceptar = recalibrar, Cancelar = seguir igual)'
+    );
+    if(retry){ runCalibration(); } else { setStep(3); }
+  }
+}
 
 uploadZone.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', (e) => {
@@ -448,6 +516,8 @@ btnRecord.addEventListener('click', () => {
   statsRow.style.display = 'flex';
   btnRecord.disabled = true;
   btnStop.disabled = false;
+  document.querySelector('.steps-path').style.visibility = 'hidden';
+  document.querySelector('header').style.visibility = 'hidden';
   tickTimer();
 });
 
@@ -461,6 +531,8 @@ btnStop.addEventListener('click', () => {
   recording = false;
   btnRecord.disabled = false;
   btnStop.disabled = true;
+  document.querySelector('.steps-path').style.visibility = 'visible';
+  document.querySelector('header').style.visibility = 'visible';
   setStep(5);
 });
 
@@ -492,17 +564,27 @@ function drawHeatmap(){
     ctx.fill();
   });
 
-  // recolor via lookup for a warmer high-density look
+  // recolor con la escala clásica de heatmap: verde (baja densidad) -> amarillo -> rojo (alta densidad)
   const img = ctx.getImageData(0,0,heatCanvas.width, heatCanvas.height);
   for(let i=0;i<img.data.length;i+=4){
     const a = img.data[i+3];
     if(a === 0) continue;
     const t = Math.min(a/255, 1);
-    // violet -> pink -> amber ramp based on density
-    const r = Math.round(139 + t*(245-139));
-    const g = Math.round(92 + t*(184-92));
-    const b = Math.round(246 + t*(105-246));
-    img.data[i] = r; img.data[i+1] = g; img.data[i+2] = b;
+    let r, g, b;
+    if(t < 0.5){
+      // verde -> amarillo
+      const k = t / 0.5;
+      r = Math.round(40 + k*(255-40));
+      g = Math.round(180 + k*(220-180));
+      b = 40;
+    } else {
+      // amarillo -> rojo
+      const k = (t - 0.5) / 0.5;
+      r = 255;
+      g = Math.round(220 - k*220);
+      b = 40 - Math.round(k*40);
+    }
+    img.data[i] = r; img.data[i+1] = g; img.data[i+2] = Math.max(b,0);
     img.data[i+3] = Math.min(255, a*1.8);
   }
   ctx.putImageData(img, 0, 0);
@@ -511,8 +593,23 @@ function drawHeatmap(){
 btnExportPNG.addEventListener('click', () => {
   if(heatCanvas.width === 0){ alert('Generá el heatmap primero.'); return; }
   const link = document.createElement('a');
-  link.download = 'heatmap-posteo.png';
+  link.download = 'heatmap-solo.png';
   link.href = heatCanvas.toDataURL('image/png');
+  link.click();
+});
+
+btnExportComposite.addEventListener('click', () => {
+  if(heatCanvas.width === 0){ alert('Generá el heatmap primero.'); return; }
+  const nw = postImg.naturalWidth, nh = postImg.naturalHeight;
+  const composite = document.createElement('canvas');
+  composite.width = nw;
+  composite.height = nh;
+  const cctx = composite.getContext('2d');
+  cctx.drawImage(postImg, 0, 0, nw, nh);
+  cctx.drawImage(heatCanvas, 0, 0, nw, nh); // escala del tamaño mostrado al tamaño natural
+  const link = document.createElement('a');
+  link.download = 'heatmap-sobre-posteo.png';
+  link.href = composite.toDataURL('image/png');
   link.click();
 });
 
