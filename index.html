@@ -7,16 +7,16 @@
 <script src="https://cdn.jsdelivr.net/gh/jspsych/jspsych@jspsych@7.0.0/examples/js/webgazer/webgazer.js"></script>
 <style>
   :root{
-    --gray-950:#141414;
-    --gray-900:#1c1c1c;
-    --gray-700:#3a3a3a;
-    --gray-500:#8a8a8a;
-    --gray-300:#c9c9c9;
-    --gray-100:#f2f2f0;
-    --ink:#ececec;
-    --muted:#9a9a9a;
-    --ok:#8fb89a;
-    --warn:#c9a06a;
+    --gray-950:#f2f1ee;
+    --gray-900:#fbfaf8;
+    --gray-700:#dcdad4;
+    --gray-500:#8f8d87;
+    --gray-300:#4a4844;
+    --gray-100:#252420;
+    --ink:#252420;
+    --muted:#8f8d87;
+    --ok:#5f8f6f;
+    --warn:#a67a3d;
     --font-display:'Georgia', 'Times New Roman', serif;
     --font-body:-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-mono: 'SFMono-Regular', Consolas, monospace;
@@ -31,7 +31,7 @@
   }
   header{
     padding:24px 40px 16px;
-    border-bottom:1px solid rgba(255,255,255,0.08);
+    border-bottom:1px solid rgba(0,0,0,0.08);
   }
   .eyebrow{
     font-size:11px;
@@ -55,7 +55,7 @@
     display:flex;
     align-items:center;
     padding:14px 40px;
-    border-bottom:1px solid rgba(255,255,255,0.06);
+    border-bottom:1px solid rgba(0,0,0,0.06);
     background:var(--gray-900);
     gap:0;
     overflow-x:auto;
@@ -100,7 +100,7 @@
 
   .panel{
     background:var(--gray-900);
-    border:1px solid rgba(255,255,255,0.07);
+    border:1px solid rgba(0,0,0,0.09);
     border-radius:10px;
     padding:18px;
   }
@@ -158,7 +158,7 @@
     border-radius:50%;
     background:var(--gray-100);
     border:3px solid var(--gray-950);
-    box-shadow:0 0 0 5px rgba(255,255,255,0.12);
+    box-shadow:0 0 0 5px rgba(0,0,0,0.1);
     cursor:pointer;
     z-index:999;
     transform:translate(-50%,-50%);
@@ -171,11 +171,11 @@
     font-size:11px;
     padding:4px 10px;
     border-radius:999px;
-    background:rgba(255,255,255,0.06);
+    background:rgba(0,0,0,0.05);
     color:var(--gray-300);
   }
-  .badge.ok{ background:rgba(143,184,154,0.15); color:var(--ok); }
-  .badge.warn{ background:rgba(201,160,106,0.15); color:var(--warn); }
+  .badge.ok{ background:rgba(95,143,111,0.14); color:var(--ok); }
+  .badge.warn{ background:rgba(166,122,61,0.14); color:var(--warn); }
 
   .stat{
     display:flex;
@@ -196,9 +196,12 @@
     border-radius:8px;
     border:1px solid var(--gray-700);
     z-index:50;
-    filter:grayscale(1) contrast(0.9);
   }
-  #webgazerGazeDot{ z-index:1000; }
+  #webgazerGazeDot{
+    z-index:1000;
+    /* Suaviza visualmente el salto del punto: interpola su posición en vez de saltar de golpe */
+    transition: left 0.12s ease-out, top 0.12s ease-out !important;
+  }
 
   .instructions{ font-size:12.5px; color:var(--muted); line-height:1.6; }
   .hidden{ display:none !important; }
